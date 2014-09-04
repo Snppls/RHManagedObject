@@ -287,22 +287,47 @@
     if ([NSThread isMainThread]) {
 		// This ensures no updated object is fault, which would cause the NSFetchedResultsController updates to fail.
 		// http://www.mlsite.net/blog/?p=518
-
+        
 		NSDictionary *userInfo = saveNotification.userInfo;
-
+        
 		NSArray *updates = [[userInfo objectForKey:@"updated"] allObjects];
-		for (RHManagedObject *item in updates) {
-			[[item objectInCurrentThreadContext] willAccessValueForKey:nil];
+        NSMutableSet* updatedObjects = [NSMutableSet new];
+		for (RHManagedObject *item in updates)
+        {
+            NSManagedObject* object = [item objectInCurrentThreadContext];
+			[object willAccessValueForKey:nil];
+            [updatedObjects addObject:object];
 		}
-
+        
 		// 2013-04-14 - This hack is also required on the "inserted" key to ensure NSFetchedResultsController works properly
 		NSArray *inserted = [[userInfo objectForKey:@"inserted"] allObjects];
-		for (RHManagedObject *item in inserted) {
-			[[item objectInCurrentThreadContext] willAccessValueForKey:nil];
+        NSMutableSet* insertedObjects = [NSMutableSet new];
+		for (RHManagedObject *item in inserted)
+        {
+            NSManagedObject* object = [item objectInCurrentThreadContext];
+            [object willAccessValueForKey:nil];
+            [insertedObjects addObject:object];
 		}
-
+        
+        NSArray* deleted = [[userInfo objectForKey:@"deleted"] allObjects];
+        NSMutableSet* deletedObjectIDs = [NSMutableSet new];
+        for (RHManagedObject *item in deleted)
+        {
+            [deletedObjectIDs addObject:item.objectID];
+        }
+        
+        
         NSError *error = nil;
         [[self managedObjectContextForMainThreadWithError:&error] mergeChangesFromContextDidSaveNotification:saveNotification];
+        
+        userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                    self.databaseName, RHDataModelNameKey,
+                    insertedObjects, RHInsertedObjectsKey,
+                    updatedObjects, RHUpdatedObjectsKey,
+                    deletedObjectIDs, RHDeletedObjectIDsKey,
+                    nil];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:RHDidMergeChangesNotification object:self userInfo:userInfo];
 
     } else {
         [self performSelectorOnMainThread:@selector(mocDidSave:) withObject:saveNotification waitUntilDone:NO];

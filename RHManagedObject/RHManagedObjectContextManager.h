@@ -25,6 +25,12 @@
 #define kMergePolicy NSMergeByPropertyObjectTrumpMergePolicy
 #define RHWillMassUpdateNotification @"RHWillMassUpdateNotification"
 #define kPostMassUpdateNotificationThreshold 10 // If more than kPostMassUpdateNotificationThreshold updates are commited at once, post a RHWillMassUpdateNotification notification first
+#define RHDidMergeChangesNotification @"RHDidMergeChangesNotification"
+
+static NSString* const RHDataModelNameKey = @"RHDataModelNameKey";
+static NSString* const RHInsertedObjectsKey = @"RHInsertedObjectsKey";
+static NSString* const RHUpdatedObjectsKey = @"RHUpdatedObjectsKey";
+static NSString* const RHDeletedObjectIDsKey = @"RHDeletedObjectIDsKey";
 
 #import <CoreData/CoreData.h>
 
