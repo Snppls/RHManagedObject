@@ -184,6 +184,11 @@ static NSString* const RHDeletedObjectIDsKey = @"RHDeletedObjectIDsKey";
  */
 
 /**
+ *  Returns the path of the database file.
+ */
+@property (nonatomic, readonly) NSString* storePath;
+
+/**
  *  Returns the application's documents directory.
  *
  *  @return The application's documents directory.
